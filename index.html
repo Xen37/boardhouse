@@ -8,68 +8,83 @@
 </head>
 <body>
   <header>
-    <h1>Boarding House</h1>
+    <div class="brand">
+      <span class="brand-icon">🏠</span>
+      <h1>Boarding House</h1>
+    </div>
     <nav id="nav" class="hidden">
-      <button data-view="dashboard" class="active">Dashboard</button>
-      <button data-view="rooms">Rooms</button>
-      <button data-view="tenants" data-admin>Tenants</button>
-      <button data-view="payments">Payments</button>
+      <button data-view="dashboard" class="active"><span>📊</span>Dashboard</button>
+      <button data-view="rooms"><span>🚪</span>Rooms</button>
+      <button data-view="tenants" data-admin><span>👥</span>Tenants</button>
+      <button data-view="payments"><span>💰</span>Payments</button>
     </nav>
-    <button id="logout" class="btn cancel hidden">Logout</button>
+    <button id="logout" class="btn ghost hidden">Logout</button>
   </header>
 
-  <section id="login" class="card login-card">
-    <h2>Login</h2>
-    <form id="login-form">
-      <label>Role
-        <select name="role">
-          <option value="admin">Admin</option>
-          <option value="tenant">Tenant</option>
-        </select>
-      </label>
-      <label id="login-email">Email<input name="email" type="email" autocomplete="off" required></label>
-      <label id="login-pass">Password<input name="password" type="password"></label>
-      <label id="login-lname" class="hidden">Last name<input name="lastname" autocomplete="off" disabled></label>
-      <label id="login-room" class="hidden">Room number<input name="room" autocomplete="off" disabled></label>
-      <button type="submit" class="btn save">Login</button>
-      <p id="login-error" class="error hidden"></p>
-    </form>
+  <section id="login" class="login-wrap">
+    <div class="login-card card">
+      <div class="login-logo">🏠</div>
+      <h2>Welcome back</h2>
+      <p class="login-sub">Sign in to manage your boarding house</p>
+      <form id="login-form">
+        <label>Role
+          <select name="role">
+            <option value="admin">Admin</option>
+            <option value="tenant">Tenant</option>
+          </select>
+        </label>
+        <label id="login-email">Email<input name="email" type="email" autocomplete="off" required></label>
+        <label id="login-pass">Password<input name="password" type="password"></label>
+        <label id="login-lname" class="hidden">Last name<input name="lastname" autocomplete="off" disabled></label>
+        <label id="login-room" class="hidden">Room number<input name="room" autocomplete="off" disabled></label>
+        <button type="submit" class="btn primary btn-block">Login</button>
+        <p id="login-error" class="error hidden"></p>
+      </form>
+    </div>
   </section>
 
   <main class="hidden" id="main">
     <section id="dashboard" class="view active">
       <div class="stats">
-        <div class="card"><span class="num" id="st-total">0</span><label>Total Rooms</label></div>
-        <div class="card"><span class="num" id="st-occupied">0</span><label>Occupied</label></div>
-        <div class="card"><span class="num" id="st-available">0</span><label>Available</label></div>
-        <div class="card"><span class="num" id="st-rent">0</span><label>Monthly Rent</label></div>
+        <div class="stat-card"><div class="stat-ico blue">🏨</div><div><span class="num" id="st-total">0</span><label>Total Rooms</label></div></div>
+        <div class="stat-card"><div class="stat-ico red">🛌</div><div><span class="num" id="st-occupied">0</span><label>Occupied</label></div></div>
+        <div class="stat-card"><div class="stat-ico green">✅</div><div><span class="num" id="st-available">0</span><label>Available</label></div></div>
+        <div class="stat-card"><div class="stat-ico amber">💵</div><div><span class="num" id="st-rent">0</span><label>Monthly Rent</label></div></div>
       </div>
-      <h2>Recent Payments</h2>
-      <table id="recent-payments"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
+      <div class="panel">
+        <h2>Recent Payments</h2>
+        <table id="recent-payments"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
+      </div>
     </section>
 
     <section id="rooms" class="view">
-      <div class="bar">
-        <h2>Rooms</h2>
-        <button class="btn add" data-open="room-modal" data-admin-only>Add Room</button>
+      <div class="panel">
+        <div class="bar">
+          <h2>Rooms</h2>
+          <button class="btn primary add" data-open="room-modal" data-admin-only>+ Add Room</button>
+        </div>
+        <table id="rooms-table"><thead><tr><th>Room</th><th>Type</th><th>Rent</th><th>Status</th><th data-admin-only></th></tr></thead><tbody></tbody></table>
       </div>
-      <table id="rooms-table"><thead><tr><th>Room</th><th>Type</th><th>Rent</th><th>Status</th><th data-admin-only></th></tr></thead><tbody></tbody></table>
     </section>
 
     <section id="tenants" class="view">
-      <div class="bar">
-        <h2>Tenants</h2>
-        <button class="btn add" data-open="tenant-modal" data-admin-only>Add Tenant</button>
+      <div class="panel">
+        <div class="bar">
+          <h2>Tenants</h2>
+          <button class="btn primary add" data-open="tenant-modal" data-admin-only>+ Add Tenant</button>
+        </div>
+        <table id="tenants-table"><thead><tr><th>Name</th><th>Contact</th><th>Room</th><th>Rent</th><th>Move-in</th><th></th></tr></thead><tbody></tbody></table>
       </div>
-      <table id="tenants-table"><thead><tr><th>Name</th><th>Contact</th><th>Room</th><th>Rent</th><th>Move-in</th><th></th></tr></thead><tbody></tbody></table>
     </section>
 
     <section id="payments" class="view">
-      <div class="bar">
-        <h2>Payments</h2>
-        <button class="btn add" data-open="payment-modal" data-admin-only>Add Payment</button>
+      <div class="panel">
+        <div class="bar">
+          <h2>Payments</h2>
+          <button class="btn primary add" data-open="payment-modal" data-admin-only>+ Add Payment</button>
+        </div>
+        <table id="payments-table"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
       </div>
-      <table id="payments-table"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
     </section>
   </main>
 
@@ -78,8 +93,8 @@
       <h3 id="modal-title"></h3>
       <form id="modal-form"></form>
       <div class="modal-actions">
-        <button type="button" class="btn cancel" id="cancel">Cancel</button>
-        <button type="submit" class="btn save" form="modal-form">Save</button>
+        <button type="button" class="btn ghost" id="cancel">Cancel</button>
+        <button type="submit" class="btn primary" form="modal-form">Save</button>
       </div>
     </div>
   </div>
