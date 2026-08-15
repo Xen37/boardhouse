@@ -54,36 +54,39 @@ The app seeds sample data into Firestore automatically on first load if the
 - Firebase config in `index.html`
 - Security rules should be tightened before production (see below)
 
-## Security rules (recommended before going live)
+## Security rules (IMPORTANT — fix before going live)
 
-In Firestore → Rules, restrict access so tenants can't rewrite everything:
+> ⚠️ **Your Firestore is currently in TEST MODE** (verified 2026-08-15): anyone who
+> finds your project ID (it's in the public `index.html`) can read, write, and
+> **delete every document** — tenant contacts, payment records, everything.
+> Open **Firestore → Rules** in the Firebase console and publish the rules below.
 
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
-
-For stricter rules (admin-only writes, tenant read-only), use:
+Because tenant login uses **last name + room number** (no real account), the app
+must be able to read `rooms` and `tenants` without signing in, and the admin is
+the only user who ever signs in to Firebase Auth. These rules match that design:
 
 ```js
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'landlord@bhs.local';
+      return request.auth != null &&
+        request.auth.token.email == 'landlord@bhs.local';
     }
-    match /rooms { allow read: if request.auth != null; allow write: if isAdmin(); }
-    match /tenants { allow read: if request.auth != null; allow write: if isAdmin(); }
-    match /payments { allow read: if request.auth != null; allow write: if isAdmin(); }
+    // Public read (landing page + tenant last-name login), admin-only write.
+    match /rooms { allow read: if true; allow write: if isAdmin(); }
+    match /tenants { allow read: if true; allow write: if isAdmin(); }
+    match /payments { allow read: if true; allow write: if isAdmin(); }
   }
 }
 ```
+
+Replace `landlord@bhs.local` with the email of the admin user you created in
+Firebase Auth (the one you log in with as Admin).
+
+**Known limitation:** with last-name login, tenant names/contacts/payments remain
+publicly readable (only writes are locked down). For real privacy, give tenants
+their own Firebase Auth accounts and restrict reads — say the word and I'll add it.
 
 ## Git
 

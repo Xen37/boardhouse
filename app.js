@@ -56,7 +56,7 @@ function renderDashboard() {
   const body = document.getElementById('recent-payments').querySelector('tbody');
   const recent = visiblePayments().slice(-5).reverse();
   body.innerHTML = recent.length
-    ? recent.map((p) => `<tr><td>${esc(tenantName(p.tenantId))}</td><td>${fmt(p.amount)}</td><td>${p.date}</td><td><span class="badge ${p.status}">${p.status}</span></td></tr>`).join('')
+    ? recent.map((p) => `<tr><td>${esc(tenantName(p.tenantId))}</td><td>${fmt(p.amount)}</td><td>${esc(p.date)}</td><td><span class="badge ${esc(p.status)}">${esc(p.status)}</span></td></tr>`).join('')
     : `<tr><td colspan="4" class="empty">No payments yet</td></tr>`;
 }
 
@@ -67,9 +67,9 @@ function renderRooms() {
   body.innerHTML = rs.length
     ? rs.map((r) => `<tr>
         <td>${esc(r.number)}</td><td>${esc(r.type)}</td><td>${fmt(r.rent)}</td>
-        <td><span class="badge ${r.status}">${r.status}</span></td>
-        ${isAdmin ? `<td><button class="btn sm" onclick="openRoom(${r.id})">Edit</button>
-        <button class="btn sm danger" onclick="delRoom(${r.id})">Delete</button></td>` : ''}
+        <td><span class="badge ${esc(r.status)}">${esc(r.status)}</span></td>
+        ${isAdmin ? `<td><button class="btn sm" data-act="editRoom" data-id="${esc(r.id)}">Edit</button>
+        <button class="btn sm danger" data-act="delRoom" data-id="${esc(r.id)}">Delete</button></td>` : ''}
       </tr>`).join('')
     : `<tr><td colspan="${isAdmin ? 5 : 4}" class="empty">No rooms</td></tr>`;
 }
@@ -80,9 +80,9 @@ function renderTenants() {
   body.innerHTML = ts.length
     ? ts.map((t) => `<tr>
         <td>${esc(t.name)}</td><td>${esc(t.contact)}</td><td>${esc(t.room)}</td>
-        <td>${fmt(t.rent)}</td><td>${t.moveIn}</td>
-        <td><button class="btn sm" onclick="openTenant(${t.id})">Edit</button>
-        <button class="btn sm danger" onclick="delTenant(${t.id})">Delete</button></td>
+        <td>${fmt(t.rent)}</td><td>${esc(t.moveIn)}</td>
+        <td><button class="btn sm" data-act="editTenant" data-id="${esc(t.id)}">Edit</button>
+        <button class="btn sm danger" data-act="delTenant" data-id="${esc(t.id)}">Delete</button></td>
       </tr>`).join('')
     : `<tr><td colspan="6" class="empty">No tenants</td></tr>`;
 }
@@ -91,7 +91,7 @@ function renderPayments() {
   const body = document.getElementById('payments-table').querySelector('tbody');
   const ps = visiblePayments();
   body.innerHTML = ps.length
-    ? ps.map((p) => `<tr><td>${esc(tenantName(p.tenantId))}</td><td>${fmt(p.amount)}</td><td>${p.date}</td><td><span class="badge ${p.status}">${p.status}</span></td></tr>`).join('')
+    ? ps.map((p) => `<tr><td>${esc(tenantName(p.tenantId))}</td><td>${fmt(p.amount)}</td><td>${esc(p.date)}</td><td><span class="badge ${esc(p.status)}">${esc(p.status)}</span></td></tr>`).join('')
     : `<tr><td colspan="4" class="empty">No payments yet</td></tr>`;
 }
 
@@ -126,9 +126,9 @@ function openRoom(id) {
   document.getElementById('modal-title').textContent = 'Edit Room';
   document.getElementById('modal-form').innerHTML = `
     <label>Room number<input name="number" value="${esc(r.number)}" required></label>
-    <label>Type<select name="type">${ROOM_TYPES.map((t) => `<option ${t === r.type ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
-    <label>Monthly rent<input name="rent" type="number" min="0" value="${r.rent}" required></label>
-    <label>Status<select name="status">${Object.values(STATUS).map((s) => `<option value="${s}" ${s === r.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label>`;
+    <label>Type<select name="type">${ROOM_TYPES.map((t) => `<option ${t === r.type ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
+    <label>Monthly rent<input name="rent" type="number" min="0" value="${esc(r.rent)}" required></label>
+    <label>Status<select name="status">${Object.values(STATUS).map((s) => `<option value="${esc(s)}" ${s === r.status ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></label>`;
   openModal();
 }
 
@@ -137,7 +137,7 @@ function addRoomForm() {
   document.getElementById('modal-title').textContent = 'Add Room';
   document.getElementById('modal-form').innerHTML = `
     <label>Room number<input name="number" required></label>
-    <label>Type<select name="type">${ROOM_TYPES.map((t) => `<option>${t}</option>`).join('')}</select></label>
+    <label>Type<select name="type">${ROOM_TYPES.map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
     <label>Monthly rent<input name="rent" type="number" min="0" value="0" required></label>
     <label>Status<select name="status"><option value="${STATUS.Available}">Available</option><option value="${STATUS.Occupied}">Occupied</option></select></label>`;
   openModal();
@@ -150,16 +150,16 @@ function openTenant(id) {
   document.getElementById('modal-form').innerHTML = `
     <label>Full name<input name="name" value="${esc(t.name)}" required></label>
     <label>Contact number<input name="contact" value="${esc(t.contact)}" required></label>
-    <label>Assigned room<select name="room">${rooms().map((r) => `<option value="${r.number}" ${r.number === t.room ? 'selected' : ''}>${r.number} (${r.status})</option>`).join('')}</select></label>
-    <label>Monthly rent<input name="rent" type="number" min="0" value="${t.rent}" required></label>
-    <label>Move-in date<input name="moveIn" type="date" value="${t.moveIn}" required></label>`;
+    <label>Assigned room<select name="room">${rooms().map((r) => `<option value="${esc(r.number)}" ${r.number === t.room ? 'selected' : ''}>${esc(r.number)} (${esc(r.status)})</option>`).join('')}</select></label>
+    <label>Monthly rent<input name="rent" type="number" min="0" value="${esc(t.rent)}" required></label>
+    <label>Move-in date<input name="moveIn" type="date" value="${esc(t.moveIn)}" required></label>`;
   openModal();
 }
 
 function addTenantForm() {
   editKind = 'tenant'; editId = null;
   const opts = availableRooms().length
-    ? availableRooms().map((r) => `<option value="${r.number}">${r.number} (${r.type})</option>`).join('')
+    ? availableRooms().map((r) => `<option value="${esc(r.number)}">${esc(r.number)} (${esc(r.type)})</option>`).join('')
     : `<option value="">No available rooms</option>`;
   document.getElementById('modal-title').textContent = 'Add Tenant';
   document.getElementById('modal-form').innerHTML = `
@@ -174,13 +174,13 @@ function addTenantForm() {
 function addPaymentForm() {
   editKind = 'payment'; editId = null;
   const ts = tenants();
-  const opts = ts.length ? ts.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('') : `<option value="">No tenants</option>`;
+  const opts = ts.length ? ts.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('') : `<option value="">No tenants</option>`;
   document.getElementById('modal-title').textContent = 'Add Payment';
   document.getElementById('modal-form').innerHTML = `
     <label>Tenant<select name="tenantId">${opts}</select></label>
     <label>Amount<input name="amount" type="number" min="0" value="0" required></label>
     <label>Payment date<input name="date" type="date" value="${new Date().toISOString().slice(0, 10)}" required></label>
-    <label>Status<select name="status">${PAY_STATUS.map((s) => `<option value="${s}">${s}</option>`).join('')}</select></label>`;
+    <label>Status<select name="status">${PAY_STATUS.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select></label>`;
   openModal();
 }
 
@@ -248,6 +248,7 @@ function showLogin() {
 
 async function showApp() {
   document.getElementById('app-header').classList.remove('hidden');
+  document.getElementById('app-back').classList.remove('hidden');
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
@@ -268,7 +269,7 @@ function renderLanding() {
   document.getElementById('landing-avail').textContent = `${avail} of ${rs.length} rooms available`;
   grid.innerHTML = rs.length
     ? rs.map((r) => `<div class="room-card">
-        <div class="room-top"><span class="room-no">Room ${esc(r.number)}</span><span class="badge ${r.status}">${r.status}</span></div>
+        <div class="room-top"><span class="room-no">Room ${esc(r.number)}</span><span class="badge ${esc(r.status)}">${esc(r.status)}</span></div>
         <span class="room-type">${esc(r.type)} room</span>
         <span class="room-price">${fmt(r.rent)}<span> / month</span></span>
       </div>`).join('')
@@ -337,10 +338,27 @@ document.querySelectorAll('.btn.add').forEach((b) =>
   })
 );
 
+document.querySelectorAll('table').forEach((tbl) =>
+  tbl.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const { act, id } = btn.dataset;
+    if (act === 'editRoom') openRoom(id);
+    else if (act === 'delRoom') delRoom(id);
+    else if (act === 'editTenant') openTenant(id);
+    else if (act === 'delTenant') delTenant(id);
+  })
+);
+
 document.getElementById('cancel').addEventListener('click', closeModal);
 document.getElementById('modal-form').addEventListener('submit', (e) => { e.preventDefault(); saveForm(); });
 
 document.getElementById('landing-login').addEventListener('click', showLogin);
+document.getElementById('login-back').addEventListener('click', showLanding);
+document.getElementById('app-back').addEventListener('click', showLanding);
+document.getElementById('landing-back').addEventListener('click', () => {
+  document.getElementById('landing').scrollIntoView({ behavior: 'smooth' });
+});
 document.getElementById('hero-cta').addEventListener('click', () => {
   document.getElementById('landing-rooms').scrollIntoView({ behavior: 'smooth' });
 });
