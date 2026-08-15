@@ -248,7 +248,6 @@ function showLogin() {
 
 async function showApp() {
   document.getElementById('app-header').classList.remove('hidden');
-  document.getElementById('app-back').classList.remove('hidden');
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
@@ -355,7 +354,6 @@ document.getElementById('modal-form').addEventListener('submit', (e) => { e.prev
 
 document.getElementById('landing-login').addEventListener('click', showLogin);
 document.getElementById('login-back').addEventListener('click', showLanding);
-document.getElementById('app-back').addEventListener('click', showLanding);
 document.getElementById('hero-cta').addEventListener('click', () => {
   document.getElementById('landing-rooms').scrollIntoView({ behavior: 'smooth' });
 });
