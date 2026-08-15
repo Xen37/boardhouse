@@ -31,8 +31,8 @@ async function seed() {
   await setDoc_('rooms', { id: '2', number: '102', type: 'Double', rent: 5000, status: STATUS.Available });
   await setDoc_('rooms', { id: '3', number: '201', type: 'Single', rent: 3500, status: STATUS.Occupied });
   await setDoc_('rooms', { id: '4', number: '202', type: 'Family', rent: 8000, status: STATUS.Available });
-  await setDoc_('tenants', { id: '1', name: 'Juan Dela Cruz', contact: '09171234567', room: '101', rent: 3500, moveIn: '2026-06-01' });
-  await setDoc_('tenants', { id: '2', name: 'Maria Santos', contact: '09185556666', room: '201', rent: 3500, moveIn: '2026-07-01' });
+  await setDoc_('tenants', { id: '1', name: 'Juan Dela Cruz', email: 'juan@bhs.local', password: 'juan123', contact: '09171234567', room: '101', rent: 3500, moveIn: '2026-06-01' });
+  await setDoc_('tenants', { id: '2', name: 'Maria Santos', email: 'maria@bhs.local', password: 'maria123', contact: '09185556666', room: '201', rent: 3500, moveIn: '2026-07-01' });
   await setDoc_('payments', { id: '1', tenantId: '1', amount: 3500, date: '2026-08-01', status: 'paid' });
   await setDoc_('payments', { id: '2', tenantId: '2', amount: 3500, date: '2026-08-05', status: 'pending' });
 }
@@ -149,6 +149,8 @@ function openTenant(id) {
   document.getElementById('modal-title').textContent = 'Edit Tenant';
   document.getElementById('modal-form').innerHTML = `
     <label>Full name<input name="name" value="${esc(t.name)}" required></label>
+    <label>Email<input name="email" type="email" value="${esc(t.email || '')}"></label>
+    <label>Password<input name="password" type="password" value="${esc(t.password || '')}"></label>
     <label>Contact number<input name="contact" value="${esc(t.contact)}" required></label>
     <label>Assigned room<select name="room">${rooms().map((r) => `<option value="${r.number}" ${r.number === t.room ? 'selected' : ''}>${r.number} (${r.status})</option>`).join('')}</select></label>
     <label>Monthly rent<input name="rent" type="number" min="0" value="${t.rent}" required></label>
@@ -164,6 +166,8 @@ function addTenantForm() {
   document.getElementById('modal-title').textContent = 'Add Tenant';
   document.getElementById('modal-form').innerHTML = `
     <label>Full name<input name="name" required></label>
+    <label>Email<input name="email" type="email"></label>
+    <label>Password<input name="password" type="password"></label>
     <label>Contact number<input name="contact" required></label>
     <label>Assigned room<select name="room">${opts}</select></label>
     <label>Monthly rent<input name="rent" type="number" min="0" value="0" required></label>
@@ -191,7 +195,7 @@ async function saveForm() {
     const data = { id: editId || uid(), number: f.number, type: f.type, rent: Number(f.rent), status: f.status };
     await setDoc_('rooms', data);
   } else if (editKind === 'tenant') {
-    const data = { id: editId || uid(), name: f.name, contact: f.contact, room: f.room, rent: Number(f.rent), moveIn: f.moveIn };
+    const data = { id: editId || uid(), name: f.name, email: f.email, password: f.password, contact: f.contact, room: f.room, rent: Number(f.rent), moveIn: f.moveIn };
     if (editId) {
       const old = tenants().find((x) => String(x.id) === editId);
       if (old && old.room !== f.room) await setRoomStatusByNumber(old.room, STATUS.Available);
@@ -249,22 +253,20 @@ async function showApp() {
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
-  const name = String(f.get('name') || '').trim();
-  const room = String(f.get('room') || '').trim();
+  const email = String(f.get('email') || '').trim().toLowerCase();
   const err = document.getElementById('login-error');
   const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
 
   if (f.get('role') === 'admin') {
     try {
-      const email = name.toLowerCase() + '@bhs.local';
       await signInWithEmailAndPassword(auth, email, f.get('password') || '');
       user = { role: 'admin' };
       await showApp();
     } catch { fail('Invalid admin credentials'); }
   } else {
-    const t = tenants().find((x) => x.name.toLowerCase() === name.toLowerCase() && String(x.room) === room);
+    const t = tenants().find((x) => (x.email || '').toLowerCase() === email && x.password === f.get('password'));
     if (t) { user = { role: 'tenant', tenantId: t.id, room: t.room }; await showApp(); }
-    else fail('Tenant not found — check your name and room number');
+    else fail('Tenant not found — check your email and password');
   }
 });
 
@@ -277,7 +279,6 @@ document.querySelectorAll('#login-form [name="role"]').forEach((s) =>
   s.addEventListener('change', () => {
     const isAdmin = s.value === 'admin';
     document.getElementById('login-pass').classList.toggle('hidden', !isAdmin);
-    document.getElementById('login-room').classList.toggle('hidden', isAdmin);
   })
 );
 

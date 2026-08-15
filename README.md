@@ -5,7 +5,7 @@ Backend: **Firebase Firestore + Firebase Auth**.
 
 ## Features
 
-- Login: **Admin** (landlord) via Firebase Auth, **Tenant** via name + room number
+- Login: **Admin** (landlord) and **Tenant** both log in with **email + password**
 - Dashboard with live stats (total / occupied / available rooms, monthly rent, recent payments)
 - Rooms: add, edit, delete (number, type, rent, status)
 - Tenants: add, edit, delete — assigning a tenant marks a room **Occupied**; removing one frees it
@@ -24,19 +24,25 @@ No build step, no npm packages — Firebase SDK is loaded from the CDN.
 
 ## Admin login (Firebase Auth)
 
-The app signs the admin in with `name@bhs.local` (so name `landlord` →
-`landlord@bhs.local`) and the password you type.
+The app signs the admin in with **any email + password** registered as a user
+in Firebase Auth.
 
 Create the admin user once in the Firebase console:
 
 1. [console.firebase.google.com](https://console.firebase.google.com) → project **bhs1-ceedb**
 2. **Build → Authentication → Users → Add user**
-3. Email: `landlord@bhs.local` · Password: `admin123pass`
+3. Set the email + password you want to use (e.g. `landlord@bhs.local` / `admin123pass`)
 
-Login form: Role **Admin**, Name `landlord`, Password `admin123pass`.
+Login form: Role **Admin**, Email = the email you created, Password = its password.
 
-Tenants don't need a Firebase Auth account — they log in with their
-**name + room number**, which is checked against the `tenants` collection.
+## Tenant login
+
+Tenants log in with the **email + password** stored on their tenant record in
+the Firestore `tenants` collection (set in the Add/Edit Tenant form).
+Each tenant doc has fields: `name`, `email`, `password`, `contact`, `room`,
+`rent`, `moveIn`.
+
+Sample seeded tenants: `juan@bhs.local` / `juan123`, `maria@bhs.local` / `maria123`.
 
 ## First run
 
