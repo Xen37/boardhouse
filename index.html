@@ -27,7 +27,6 @@
   <section id="landing" class="landing">
     <header class="landing-nav">
       <div class="header-left">
-        <button id="landing-back" class="btn ghost back">← Back</button>
         <span class="brand-icon">🏠</span>
         <h1>Boarding House</h1>
       </div>
@@ -67,14 +66,6 @@
   </section>
 
   <section id="login" class="login-wrap hidden">
-    <header class="login-nav">
-      <button id="login-back" class="btn ghost back">← Back</button>
-      <div class="brand">
-        <span class="brand-icon">🏠</span>
-        <h1>Boarding House</h1>
-      </div>
-      <span class="login-nav-spacer"></span>
-    </header>
     <div class="login-card card">
       <div class="login-logo">🏠</div>
       <h2>Welcome back</h2>
@@ -91,6 +82,7 @@
         <label id="login-lname" class="hidden">Last name<input name="lastname" autocomplete="off" disabled></label>
         <label id="login-room" class="hidden">Room number<input name="room" autocomplete="off" disabled></label>
         <button type="submit" class="btn primary btn-block">Login</button>
+        <button type="button" id="login-back" class="btn ghost btn-block back">← Back</button>
         <p id="login-error" class="error hidden"></p>
       </form>
     </div>
