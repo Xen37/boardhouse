@@ -9,6 +9,7 @@
 <body>
   <header id="app-header" class="hidden">
     <div class="header-left">
+      <button id="app-back" class="btn ghost back hidden">← Back</button>
       <div class="brand">
         <span class="brand-icon">🏠</span>
         <h1>Boarding House</h1>
@@ -34,7 +35,8 @@
 
     <div class="hero">
       <div class="hero-img">
-        <img src="room.jpg" alt="Room interior" onerror="this.style.display='none'">
+        <img src="room.jpg" alt="Room interior" onerror="this.remove(); this.previousElementSibling.style.display='block'">
+        <span class="hero-img-fallback">🏠</span>
       </div>
       <div class="hero-content">
         <span class="hero-tag">🏠 Affordable boarding house</span>
