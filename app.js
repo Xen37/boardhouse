@@ -254,14 +254,17 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
   if (f.get('role') === 'admin') {
     const email = String(f.get('email') || '').trim().toLowerCase();
+    const pass = String(f.get('password') || '');
+    if (!email || !pass) return fail('Enter your email and password');
     try {
-      await signInWithEmailAndPassword(auth, email, f.get('password') || '');
+      await signInWithEmailAndPassword(auth, email, pass);
       user = { role: 'admin' };
       await showApp();
     } catch { fail('Invalid admin credentials'); }
   } else {
     const lastname = String(f.get('lastname') || '').trim().toLowerCase();
     const room = String(f.get('room') || '').trim();
+    if (!lastname || !room) return fail('Enter your last name and room number');
     const t = tenants().find((x) => x.name.split(' ').pop().toLowerCase() === lastname && String(x.room) === room);
     if (t) { user = { role: 'tenant', tenantId: t.id, room: t.room }; await showApp(); }
     else fail('Tenant not found — check your last name and room number');
@@ -280,6 +283,10 @@ document.querySelectorAll('#login-form [name="role"]').forEach((s) =>
     document.getElementById('login-pass').classList.toggle('hidden', !isAdmin);
     document.getElementById('login-lname').classList.toggle('hidden', isAdmin);
     document.getElementById('login-room').classList.toggle('hidden', isAdmin);
+    document.querySelector('#login-email input').disabled = !isAdmin;
+    document.querySelector('#login-pass input').disabled = !isAdmin;
+    document.querySelector('#login-lname input').disabled = isAdmin;
+    document.querySelector('#login-room input').disabled = isAdmin;
   })
 );
 
