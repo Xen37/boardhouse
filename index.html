@@ -147,7 +147,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, setDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAifmn7r7DD4a-4R8qGrUvSta_kgb8TTws",
@@ -163,7 +163,7 @@
     window.db = getFirestore(app);
     window.auth = getAuth(app);
     window.FS = { collection, getDocs, setDoc, deleteDoc, doc };
-    window.FBA = { signInWithEmailAndPassword, signOut };
+    window.FBA = { signInWithEmailAndPassword, signOut, onAuthStateChanged };
   </script>
   <script src="app.js" defer></script>
 </body>

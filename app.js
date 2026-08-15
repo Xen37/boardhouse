@@ -1,6 +1,8 @@
 const { db, auth, FS, FBA } = window;
 const { collection, getDocs, setDoc, deleteDoc, doc } = FS;
-const { signInWithEmailAndPassword, signOut } = FBA;
+const { signInWithEmailAndPassword, signOut, onAuthStateChanged } = FBA;
+
+const SESSION_KEY = 'bhs_session';
 
 const ROOM_TYPES = ['Single', 'Double', 'Family'];
 const STATUS = { Available: 'available', Occupied: 'occupied' };
@@ -223,6 +225,22 @@ async function delTenant(id) {
 /* ---------- auth ---------- */
 let user = null;
 
+function saveSession() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ user, view: activeView() }));
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+function activeView() {
+  const v = document.querySelector('.view.active');
+  return v ? v.id : 'dashboard';
+}
+function waitForAuth() {
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
+  });
+}
+
 function showLanding() {
   user = null;
   document.getElementById('app-header').classList.add('hidden');
@@ -288,6 +306,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       user = { role: 'admin' };
+      saveSession();
       await showApp();
     } catch { fail('Invalid admin credentials'); }
   } else {
@@ -295,13 +314,19 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const room = String(f.get('room') || '').trim();
     if (!lastname || !room) return fail('Enter your last name and room number');
     const t = tenants().find((x) => x.name.split(' ').pop().toLowerCase() === lastname && String(x.room) === room);
-    if (t) { user = { role: 'tenant', tenantId: t.id, room: t.room }; await showApp(); }
+    if (t) {
+      user = { role: 'tenant', tenantId: t.id, room: t.room };
+      saveSession();
+      await showApp();
+    }
     else fail('Tenant not found — check your last name and room number');
   }
 });
 
 document.getElementById('logout').addEventListener('click', async () => {
   await signOut(auth).catch(() => {});
+  user = null;
+  clearSession();
   showLogin();
 });
 
@@ -326,6 +351,7 @@ document.querySelectorAll('nav button').forEach((b) =>
     document.querySelectorAll('.view').forEach((x) => x.classList.remove('active'));
     b.classList.add('active');
     document.getElementById(b.dataset.view).classList.add('active');
+    saveSession();
   })
 );
 
@@ -363,5 +389,44 @@ document.getElementById('landing-year').textContent = new Date().getFullYear();
   await refresh();
   await seed();
   await refresh();
+
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (raw) {
+    try {
+      const s = JSON.parse(raw);
+      if (s.user && s.user.role === 'admin') {
+        const au = await Promise.race([
+          waitForAuth(),
+          new Promise((r) => setTimeout(() => r(null), 2500)),
+        ]);
+        if (au) {
+          user = s.user;
+          await showApp();
+          const v = document.getElementById(s.view || 'dashboard');
+          if (v) {
+            document.querySelectorAll('nav button').forEach((x) => x.classList.remove('active'));
+            document.querySelectorAll('.view').forEach((x) => x.classList.remove('active'));
+            v.classList.add('active');
+            const nb = document.querySelector(`nav button[data-view="${v.id}"]`);
+            if (nb) nb.classList.add('active');
+          }
+          return;
+        }
+      }
+      if (s.user && s.user.role === 'tenant') {
+        user = s.user;
+        await showApp();
+        const v = document.getElementById(s.view || 'dashboard');
+        if (v) {
+          document.querySelectorAll('nav button').forEach((x) => x.classList.remove('active'));
+          document.querySelectorAll('.view').forEach((x) => x.classList.remove('active'));
+          v.classList.add('active');
+          const nb = document.querySelector(`nav button[data-view="${v.id}"]`);
+          if (nb) nb.classList.add('active');
+        }
+        return;
+      }
+    } catch { /* corrupted session -> fall through to landing */ }
+  }
   showLanding();
 })();
