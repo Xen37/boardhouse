@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boarding House</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Boarding House</h1>
+    <nav id="nav" class="hidden">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="rooms">Rooms</button>
+      <button data-view="tenants" data-admin>Tenants</button>
+      <button data-view="payments">Payments</button>
+    </nav>
+    <button id="logout" class="btn cancel hidden">Logout</button>
+  </header>
+
+  <section id="login" class="card login-card">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label>Role
+        <select name="role">
+          <option value="admin">Admin</option>
+          <option value="tenant">Tenant</option>
+        </select>
+      </label>
+      <label>Name<input name="name" autocomplete="off" required></label>
+      <label id="login-pass">Password<input name="password" type="password"></label>
+      <label id="login-room" class="hidden">Room number<input name="room" autocomplete="off"></label>
+      <button type="submit" class="btn save">Login</button>
+      <p id="login-error" class="error hidden"></p>
+    </form>
+  </section>
+
+  <main class="hidden" id="main">
+    <section id="dashboard" class="view active">
+      <div class="stats">
+        <div class="card"><span class="num" id="st-total">0</span><label>Total Rooms</label></div>
+        <div class="card"><span class="num" id="st-occupied">0</span><label>Occupied</label></div>
+        <div class="card"><span class="num" id="st-available">0</span><label>Available</label></div>
+        <div class="card"><span class="num" id="st-rent">0</span><label>Monthly Rent</label></div>
+      </div>
+      <h2>Recent Payments</h2>
+      <table id="recent-payments"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section id="rooms" class="view">
+      <div class="bar">
+        <h2>Rooms</h2>
+        <button class="btn add" data-open="room-modal" data-admin-only>Add Room</button>
+      </div>
+      <table id="rooms-table"><thead><tr><th>Room</th><th>Type</th><th>Rent</th><th>Status</th><th data-admin-only></th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section id="tenants" class="view">
+      <div class="bar">
+        <h2>Tenants</h2>
+        <button class="btn add" data-open="tenant-modal" data-admin-only>Add Tenant</button>
+      </div>
+      <table id="tenants-table"><thead><tr><th>Name</th><th>Contact</th><th>Room</th><th>Rent</th><th>Move-in</th><th></th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section id="payments" class="view">
+      <div class="bar">
+        <h2>Payments</h2>
+        <button class="btn add" data-open="payment-modal" data-admin-only>Add Payment</button>
+      </div>
+      <table id="payments-table"><thead><tr><th>Tenant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </section>
+  </main>
+
+  <div class="overlay hidden" id="overlay">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <form id="modal-form"></form>
+      <div class="modal-actions">
+        <button type="button" class="btn cancel" id="cancel">Cancel</button>
+        <button type="submit" class="btn save" form="modal-form">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
