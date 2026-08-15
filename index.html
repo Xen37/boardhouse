@@ -83,6 +83,27 @@
     </div>
   </div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, setDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAifmn7r7DD4a-4R8qGrUvSta_kgb8TTws",
+      authDomain: "bhs1-ceedb.firebaseapp.com",
+      projectId: "bhs1-ceedb",
+      storageBucket: "bhs1-ceedb.firebasestorage.app",
+      messagingSenderId: "146857726897",
+      appId: "1:146857726897:web:6cdb1eb04a80e0d1f6e390",
+      measurementId: "G-NVJCY0YVDQ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.FS = { collection, getDocs, setDoc, deleteDoc, doc };
+    window.FBA = { signInWithEmailAndPassword, signOut };
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

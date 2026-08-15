@@ -1,49 +1,50 @@
-const LS = { rooms: 'bh_rooms', tenants: 'bh_tenants', payments: 'bh_payments' };
-const store = {
-  get(k) { return JSON.parse(localStorage.getItem(k)) || []; },
-  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-};
+const { db, auth, FS, FBA } = window;
+const { collection, getDocs, setDoc, deleteDoc, doc } = FS;
+const { signInWithEmailAndPassword, signOut } = FBA;
 
 const ROOM_TYPES = ['Single', 'Double', 'Family'];
 const STATUS = { Available: 'available', Occupied: 'occupied' };
 const PAY_STATUS = ['paid', 'pending'];
 
-if (!localStorage.getItem(LS.rooms)) {
-  store.set(LS.rooms, [
-    { id: 1, number: '101', type: 'Single', rent: 3500, status: STATUS.Occupied },
-    { id: 2, number: '102', type: 'Double', rent: 5000, status: STATUS.Available },
-    { id: 3, number: '201', type: 'Single', rent: 3500, status: STATUS.Occupied },
-    { id: 4, number: '202', type: 'Family', rent: 8000, status: STATUS.Available }
-  ]);
-  store.set(LS.tenants, [
-    { id: 1, name: 'Juan Dela Cruz', contact: '09171234567', room: '101', rent: 3500, moveIn: '2026-06-01' },
-    { id: 2, name: 'Maria Santos', contact: '09185556666', room: '201', rent: 3500, moveIn: '2026-07-01' }
-  ]);
-  store.set(LS.payments, [
-    { id: 1, tenantId: 1, amount: 3500, date: '2026-08-01', status: 'paid' },
-    { id: 2, tenantId: 2, amount: 3500, date: '2026-08-05', status: 'pending' }
-  ]);
-}
-
-const uid = () => Date.now() + Math.floor(Math.random() * 1000);
+const uid = () => String(Date.now() + Math.floor(Math.random() * 1000));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = (n) => '₱' + Number(n || 0).toLocaleString();
 
-const rooms = () => store.get(LS.rooms);
-const tenants = () => store.get(LS.tenants);
-const payments = () => store.get(LS.payments);
-const saveRooms = (v) => store.set(LS.rooms, v);
-const saveTenants = (v) => store.set(LS.tenants, v);
-const savePayments = (v) => store.set(LS.payments, v);
+let cache = { rooms: [], tenants: [], payments: [] };
+const rooms = () => cache.rooms;
+const tenants = () => cache.tenants;
+const payments = () => cache.payments;
+
+const getCol = async (name) => (await getDocs(collection(db, name))).docs.map((d) => d.data());
+const setDoc_ = (name, item) => setDoc(doc(db, name, String(item.id)), item);
+
+async function refresh() {
+  cache.rooms = await getCol('rooms');
+  cache.tenants = await getCol('tenants');
+  cache.payments = await getCol('payments');
+  renderDashboard(); renderRooms(); renderTenants(); renderPayments();
+}
+
+async function seed() {
+  if (cache.rooms.length) return;
+  await setDoc_('rooms', { id: '1', number: '101', type: 'Single', rent: 3500, status: STATUS.Occupied });
+  await setDoc_('rooms', { id: '2', number: '102', type: 'Double', rent: 5000, status: STATUS.Available });
+  await setDoc_('rooms', { id: '3', number: '201', type: 'Single', rent: 3500, status: STATUS.Occupied });
+  await setDoc_('rooms', { id: '4', number: '202', type: 'Family', rent: 8000, status: STATUS.Available });
+  await setDoc_('tenants', { id: '1', name: 'Juan Dela Cruz', contact: '09171234567', room: '101', rent: 3500, moveIn: '2026-06-01' });
+  await setDoc_('tenants', { id: '2', name: 'Maria Santos', contact: '09185556666', room: '201', rent: 3500, moveIn: '2026-07-01' });
+  await setDoc_('payments', { id: '1', tenantId: '1', amount: 3500, date: '2026-08-01', status: 'paid' });
+  await setDoc_('payments', { id: '2', tenantId: '2', amount: 3500, date: '2026-08-05', status: 'pending' });
+}
 
 function tenantName(id) {
-  const t = tenants().find((x) => x.id === id);
+  const t = tenants().find((x) => String(x.id) === String(id));
   return t ? t.name : '(deleted)';
 }
 
 function visiblePayments() {
   const ps = payments();
-  return user && user.role === 'tenant' ? ps.filter((p) => p.tenantId === user.tenantId) : ps;
+  return user && user.role === 'tenant' ? ps.filter((p) => String(p.tenantId) === String(user.tenantId)) : ps;
 }
 
 function renderDashboard() {
@@ -94,15 +95,13 @@ function renderPayments() {
     : `<tr><td colspan="4" class="empty">No payments yet</td></tr>`;
 }
 
-function refresh() { renderDashboard(); renderRooms(); renderTenants(); renderPayments(); }
-
-function setRoomStatus(roomId, status) {
-  const rs = rooms().map((r) => (r.id === roomId ? { ...r, status } : r));
-  saveRooms(rs);
-}
-
 function availableRooms() {
   return rooms().filter((r) => r.status === STATUS.Available);
+}
+
+async function setRoomStatusByNumber(number, status) {
+  const r = rooms().find((x) => x.number === number);
+  if (r) await setDoc_( 'rooms', { ...r, status });
 }
 
 /* ---------- modals ---------- */
@@ -122,8 +121,8 @@ function formFields() {
 }
 
 function openRoom(id) {
-  editKind = 'room'; editId = id;
-  const r = rooms().find((x) => x.id === id);
+  editKind = 'room'; editId = String(id);
+  const r = rooms().find((x) => String(x.id) === String(id));
   document.getElementById('modal-title').textContent = 'Edit Room';
   document.getElementById('modal-form').innerHTML = `
     <label>Room number<input name="number" value="${esc(r.number)}" required></label>
@@ -145,8 +144,8 @@ function addRoomForm() {
 }
 
 function openTenant(id) {
-  editKind = 'tenant'; editId = id;
-  const t = tenants().find((x) => x.id === id);
+  editKind = 'tenant'; editId = String(id);
+  const t = tenants().find((x) => String(x.id) === String(id));
   document.getElementById('modal-title').textContent = 'Edit Tenant';
   document.getElementById('modal-form').innerHTML = `
     <label>Full name<input name="name" value="${esc(t.name)}" required></label>
@@ -186,54 +185,39 @@ function addPaymentForm() {
 }
 
 /* ---------- save ---------- */
-function saveForm() {
+async function saveForm() {
   const f = formFields();
   if (editKind === 'room') {
-    const rs = rooms();
     const data = { id: editId || uid(), number: f.number, type: f.type, rent: Number(f.rent), status: f.status };
-    if (editId) {
-      const idx = rs.findIndex((x) => x.id === editId);
-      rs[idx] = { ...rs[idx], ...data, id: editId };
-    } else rs.push(data);
-    saveRooms(rs);
+    await setDoc_('rooms', data);
   } else if (editKind === 'tenant') {
-    const ts = tenants();
-    const old = editId ? ts.find((x) => x.id === editId) : null;
     const data = { id: editId || uid(), name: f.name, contact: f.contact, room: f.room, rent: Number(f.rent), moveIn: f.moveIn };
     if (editId) {
-      const idx = ts.findIndex((x) => x.id === editId);
-      if (old && old.room !== f.room) { setRoomStatusByNumber(old.room, STATUS.Available); }
-      ts[idx] = { ...ts[idx], ...data, id: editId };
-    } else ts.push(data);
-    saveTenants(ts);
-    setRoomStatusByNumber(f.room, STATUS.Occupied);
+      const old = tenants().find((x) => String(x.id) === editId);
+      if (old && old.room !== f.room) await setRoomStatusByNumber(old.room, STATUS.Available);
+    }
+    await setDoc_('tenants', data);
+    await setRoomStatusByNumber(f.room, STATUS.Occupied);
   } else if (editKind === 'payment') {
-    const ps = payments();
-    ps.push({ id: uid(), tenantId: Number(f.tenantId), amount: Number(f.amount), date: f.date, status: f.status });
-    savePayments(ps);
+    await setDoc_('payments', { id: uid(), tenantId: String(f.tenantId), amount: Number(f.amount), date: f.date, status: f.status });
   }
   closeModal();
-  refresh();
-}
-
-function setRoomStatusByNumber(number, status) {
-  const rs = rooms().map((r) => (r.number === number ? { ...r, status } : r));
-  saveRooms(rs);
+  await refresh();
 }
 
 /* ---------- delete ---------- */
-function delRoom(id) {
+async function delRoom(id) {
   if (!confirm('Delete this room?')) return;
-  saveRooms(rooms().filter((r) => r.id !== id));
-  refresh();
+  await deleteDoc(doc(db, 'rooms', String(id)));
+  await refresh();
 }
 
-function delTenant(id) {
+async function delTenant(id) {
   if (!confirm('Delete this tenant?')) return;
-  const t = tenants().find((x) => x.id === id);
-  saveTenants(tenants().filter((x) => x.id !== id));
-  if (t) setRoomStatusByNumber(t.room, STATUS.Available);
-  refresh();
+  const t = tenants().find((x) => String(x.id) === String(id));
+  await deleteDoc(doc(db, 'tenants', String(id)));
+  if (t) await setRoomStatusByNumber(t.room, STATUS.Available);
+  await refresh();
 }
 
 /* ---------- auth ---------- */
@@ -249,7 +233,7 @@ function showLogin() {
   document.getElementById('login-error').classList.add('hidden');
 }
 
-function showApp() {
+async function showApp() {
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
   document.getElementById('nav').classList.remove('hidden');
@@ -259,10 +243,10 @@ function showApp() {
     document.querySelectorAll('[data-admin-only]').forEach((b) => b.classList.add('hidden'));
   }
   document.querySelector('.view.active') || document.getElementById('dashboard').classList.add('active');
-  refresh();
+  await refresh();
 }
 
-document.getElementById('login-form').addEventListener('submit', (e) => {
+document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
   const name = String(f.get('name') || '').trim();
@@ -271,18 +255,23 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
   const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
 
   if (f.get('role') === 'admin') {
-    if (name === 'landlord' && f.get('password') === 'admin123pass') {
+    try {
+      const email = name.toLowerCase() + '@bhs.local';
+      await signInWithEmailAndPassword(auth, email, f.get('password') || '');
       user = { role: 'admin' };
-      showApp();
-    } else fail('Invalid admin credentials');
+      await showApp();
+    } catch { fail('Invalid admin credentials'); }
   } else {
     const t = tenants().find((x) => x.name.toLowerCase() === name.toLowerCase() && String(x.room) === room);
-    if (t) { user = { role: 'tenant', tenantId: t.id, room: t.room }; showApp(); }
+    if (t) { user = { role: 'tenant', tenantId: t.id, room: t.room }; await showApp(); }
     else fail('Tenant not found — check your name and room number');
   }
 });
 
-document.getElementById('logout').addEventListener('click', showLogin);
+document.getElementById('logout').addEventListener('click', async () => {
+  await signOut(auth).catch(() => {});
+  showLogin();
+});
 
 document.querySelectorAll('#login-form [name="role"]').forEach((s) =>
   s.addEventListener('change', () => {
@@ -313,5 +302,9 @@ document.querySelectorAll('.btn.add').forEach((b) =>
 document.getElementById('cancel').addEventListener('click', closeModal);
 document.getElementById('modal-form').addEventListener('submit', (e) => { e.preventDefault(); saveForm(); });
 
-refresh();
-showLogin();
+(async () => {
+  await refresh();
+  await seed();
+  await refresh();
+  showLogin();
+})();
