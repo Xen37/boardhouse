@@ -225,6 +225,7 @@ let user = null;
 
 function showLanding() {
   user = null;
+  document.getElementById('app-header').classList.add('hidden');
   document.getElementById('landing').classList.remove('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.add('hidden');
@@ -235,6 +236,7 @@ function showLanding() {
 
 function showLogin() {
   user = null;
+  document.getElementById('app-header').classList.add('hidden');
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
   document.getElementById('main').classList.add('hidden');
@@ -245,6 +247,7 @@ function showLogin() {
 }
 
 async function showApp() {
+  document.getElementById('app-header').classList.remove('hidden');
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
