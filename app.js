@@ -223,8 +223,19 @@ async function delTenant(id) {
 /* ---------- auth ---------- */
 let user = null;
 
+function showLanding() {
+  user = null;
+  document.getElementById('landing').classList.remove('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('nav').classList.add('hidden');
+  document.getElementById('logout').classList.add('hidden');
+  renderLanding();
+}
+
 function showLogin() {
   user = null;
+  document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
   document.getElementById('main').classList.add('hidden');
   document.getElementById('nav').classList.add('hidden');
@@ -234,6 +245,7 @@ function showLogin() {
 }
 
 async function showApp() {
+  document.getElementById('landing').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
   document.getElementById('main').classList.remove('hidden');
   document.getElementById('nav').classList.remove('hidden');
@@ -244,6 +256,20 @@ async function showApp() {
   }
   document.querySelector('.view.active') || document.getElementById('dashboard').classList.add('active');
   await refresh();
+}
+
+function renderLanding() {
+  const rs = rooms();
+  const grid = document.getElementById('landing-room-grid');
+  const avail = rs.filter((r) => r.status === STATUS.Available).length;
+  document.getElementById('landing-avail').textContent = `${avail} of ${rs.length} rooms available`;
+  grid.innerHTML = rs.length
+    ? rs.map((r) => `<div class="room-card">
+        <div class="room-top"><span class="room-no">Room ${esc(r.number)}</span><span class="badge ${r.status}">${r.status}</span></div>
+        <span class="room-type">${esc(r.type)} room</span>
+        <span class="room-price">${fmt(r.rent)}<span> / month</span></span>
+      </div>`).join('')
+    : `<div class="empty">No rooms listed yet</div>`;
 }
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -311,9 +337,15 @@ document.querySelectorAll('.btn.add').forEach((b) =>
 document.getElementById('cancel').addEventListener('click', closeModal);
 document.getElementById('modal-form').addEventListener('submit', (e) => { e.preventDefault(); saveForm(); });
 
+document.getElementById('landing-login').addEventListener('click', showLogin);
+document.getElementById('hero-cta').addEventListener('click', () => {
+  document.getElementById('landing-rooms').scrollIntoView({ behavior: 'smooth' });
+});
+document.getElementById('landing-year').textContent = new Date().getFullYear();
+
 (async () => {
   await refresh();
   await seed();
   await refresh();
-  showLogin();
+  showLanding();
 })();

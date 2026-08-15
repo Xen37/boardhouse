@@ -21,7 +21,48 @@
     <button id="logout" class="btn ghost hidden">Logout</button>
   </header>
 
-  <section id="login" class="login-wrap">
+  <section id="landing" class="landing">
+    <header class="landing-nav">
+      <div class="brand">
+        <span class="brand-icon">🏠</span>
+        <h1>Boarding House</h1>
+      </div>
+      <button id="landing-login" class="btn primary">Login</button>
+    </header>
+
+    <div class="hero">
+      <div class="hero-img">
+        <img src="room.jpg" alt="Room interior" onerror="this.style.display='none'">
+      </div>
+      <div class="hero-content">
+        <span class="hero-tag">🏠 Affordable boarding house</span>
+        <h2>Comfortable Rooms,<br>Close to Everything</h2>
+        <p>Clean, safe, and affordable rooms for students and working professionals. Check availability below and reach out anytime.</p>
+        <button id="hero-cta" class="btn primary btn-lg">View Rooms & Prices</button>
+      </div>
+    </div>
+
+    <section id="landing-rooms" class="panel landing-panel">
+      <div class="bar">
+        <h2>Room Availability</h2>
+        <span id="landing-avail" class="muted-sm"></span>
+      </div>
+      <div id="landing-room-grid" class="room-grid"></div>
+    </section>
+
+    <section id="landing-contact" class="panel landing-panel">
+      <h2>Contact the Landlord</h2>
+      <div class="contact-grid">
+        <div class="contact-item"><span class="contact-ico">📞</span><div><label>Phone</label><b>0917 000 0000</b></div></div>
+        <div class="contact-item"><span class="contact-ico">✉️</span><div><label>Email</label><b>landlord@boardinghouse.com</b></div></div>
+        <div class="contact-item"><span class="contact-ico">📍</span><div><label>Location</label><b>123 Mabini St., Barangay Center, City</b></div></div>
+      </div>
+    </section>
+
+    <footer class="landing-foot">© <span id="landing-year"></span> Boarding House · Edit contact details in index.html</footer>
+  </section>
+
+  <section id="login" class="login-wrap hidden">
     <div class="login-card card">
       <div class="login-logo">🏠</div>
       <h2>Welcome back</h2>
