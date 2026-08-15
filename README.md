@@ -37,12 +37,11 @@ Login form: Role **Admin**, Email = the email you created, Password = its passwo
 
 ## Tenant login
 
-Tenants log in with the **email + password** stored on their tenant record in
-the Firestore `tenants` collection (set in the Add/Edit Tenant form).
-Each tenant doc has fields: `name`, `email`, `password`, `contact`, `room`,
-`rent`, `moveIn`.
+Tenants log in with their **last name + room number**, checked against the
+Firestore `tenants` collection.
+Each tenant doc has fields: `name`, `contact`, `room`, `rent`, `moveIn`.
 
-Sample seeded tenants: `juan@bhs.local` / `juan123`, `maria@bhs.local` / `maria123`.
+Sample seeded tenants: `Dela Cruz` / room `101`, `Santos` / room `201`.
 
 ## First run
 
